@@ -1,0 +1,9 @@
+# Model
+marianmt-mtet-model/
+models/
+
+# Hugging Face repo metadata
+__huggingface_repos__.json
+
+# Kết quả nén
+results.zip

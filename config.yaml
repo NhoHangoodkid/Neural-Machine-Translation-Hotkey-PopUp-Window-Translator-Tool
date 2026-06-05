@@ -1,0 +1,27 @@
+# Cau hinh app dich. Sua o day, khong can sua code.
+ 
+hotkeys:
+  translate_selection: "ctrl+shift+f"
+  # translate_ocr: "ctrl+shift+s"   # danh san cho OCR sau nay
+ 
+device: "cpu"          # "cuda" neu may co GPU NVIDIA + CTranslate2 ban GPU
+ 
+engines:
+  default: "en-vi"
+  en-vi:
+    model_dir: "models/en-vi-ct2"
+    tokenizer_dir: "models/tokenizer-en-vi"
+  # vi-en:                          # bo comment khi co model VI->EN
+  #   model_dir: "models/vi-en-ct2"
+  #   tokenizer_dir: "models/tokenizer-vi-en"
+ 
+translation:
+  max_input_length: 128   # khop voi luc train
+  num_beams: 4
+  max_decode_length: 128
+ 
+ui:
+  popup_timeout_ms: 9000  # tu dong dong sau bao lau (0 = khong tu dong)
+  font_size: 12
+  max_width: 460
+ 
