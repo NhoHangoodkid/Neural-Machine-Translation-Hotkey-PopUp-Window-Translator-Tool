@@ -1,7 +1,7 @@
 # Cau hinh app dich. Sua o day, khong can sua code.
  
 hotkeys:
-  translate_selection: "ctrl+shift+f"
+  translate_selection: "ctrl+shift+g"
   # translate_ocr: "ctrl+shift+s"   # danh san cho OCR sau nay
  
 device: "cpu"          # "cuda" neu may co GPU NVIDIA + CTranslate2 ban GPU
@@ -9,7 +9,7 @@ device: "cpu"          # "cuda" neu may co GPU NVIDIA + CTranslate2 ban GPU
 engines:
   default: "en-vi"
   en-vi:
-    model_dir: "models/en-vi-ct2"
+    model_dir: "models/en-vi-ct2"s
     tokenizer_dir: "models/tokenizer-en-vi"
   # vi-en:                          # bo comment khi co model VI->EN
   #   model_dir: "models/vi-en-ct2"
