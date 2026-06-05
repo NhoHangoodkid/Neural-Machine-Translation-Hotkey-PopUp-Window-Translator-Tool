@@ -17,7 +17,7 @@ class Popup:
         self.root.withdraw()  # an cua so goc
         self._win = None
 
-    def show(self, text x, y):
+    def show(self, text, x, y):
         # Dong popup cu neu con
         if self._win is not None:
             try:
