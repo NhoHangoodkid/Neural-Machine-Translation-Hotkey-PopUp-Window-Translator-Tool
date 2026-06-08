@@ -9,7 +9,7 @@ device: "cpu"          # "cuda" neu may co GPU NVIDIA + CTranslate2 ban GPU
 engines:
   default: "en-vi"
   en-vi:
-    model_dir: "models/en-vi-ct2"s
+    model_dir: "models/en-vi-ct2"
     tokenizer_dir: "models/tokenizer-en-vi"
   # vi-en:                          # bo comment khi co model VI->EN
   #   model_dir: "models/vi-en-ct2"

@@ -59,7 +59,7 @@ class Popup:
         if self.timeout_ms and self.timeout_ms > 0:
             win.after(self.timeout_ms, self._close)
 
-    def show_loading(self, x: int = None, y: int = None):
+    def show_loading(self, x, y):
         self.show("Dang dich...", x, y)
 
     def _close(self):
