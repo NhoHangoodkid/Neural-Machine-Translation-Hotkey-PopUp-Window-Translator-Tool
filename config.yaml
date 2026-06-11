@@ -1,7 +1,7 @@
 # Cau hinh app dich. Sua o day, khong can sua code.
  
 hotkeys:
-  translate_selection: "ctrl+shift+g"
+  translate_selection: "ctrl+shift+y"
   # translate_ocr: "ctrl+shift+s"   # danh san cho OCR sau nay
  
 device: "cpu"          # "cuda" neu may co GPU NVIDIA + CTranslate2 ban GPU
