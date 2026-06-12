@@ -1,39 +1,84 @@
 # Desktop Translator (EN->VI)
 
-Dịch text bôi đen ở bất kỳ đâu trên Windows bằng hotkey toàn cục, kết quả hiện trong popup nhỏ gần con trỏ. Model là MarianMT (`opus-mt-en-vi`) đã fine-tune trên MTet, chạy inference nhanh bằng CTranslate2 (int8).
+A convenient Desktop translation tool (English to Vietnamese). Translate highlighted text anywhere on your Windows system using a global hotkey, and the result will instantly appear in a small popup near your mouse cursor. Additionally, the tool supports Optical Character Recognition (OCR) to extract and translate text from screenshots.
 
+## Technologies & Libraries Used
 
-## Cài đặt
+This project is built and optimized for speed using open-source technologies:
+
+- **Translation Model:** [MarianMT](https://huggingface.co/docs/transformers/model_doc/marian) (`opus-mt-en-vi`) fine-tuned on the MTet dataset and Academic (custom by myself).
+- **Inference Engine:** [CTranslate2](https://github.com/OpenNMT/CTranslate2) combined with Hugging Face `transformers` for ultra-fast and lightweight inference (int8 quantization).
+- **Optical Character Recognition (OCR):** [RapidOCR](https://github.com/RapidAI/RapidOCR) (`rapidocr_onnxruntime` version), combined with `OpenCV` (`cv2`) and `Pillow` for image processing and text extraction.
+- **User Interface (UI):** `tkinter` for smooth popup windows and screen selection overlays.
+- **System Interaction:** `pynput` for capturing global hotkeys, `pyperclip` for clipboard operations, and `ctypes` for DPI awareness (preventing blurriness on high-resolution screens).
+
+## Installation
+
+Ensure you have Python 3.8 or higher installed.
 
 ```bash
 pip install -r requirements.txt
 ```
+*(Note: You may also need to install OCR-related libraries such as `rapidocr_onnxruntime`, `opencv-python`, and `Pillow` if they are not already available)*
 
-## Bước 1: Convert model từ Kaggle
+## Step 1: Convert the Model
 
-Sau khi tải output Kaggle về và giải nén (có thư mục `final_model/`):
+After downloading the output from Kaggle or your trained model and extracting it (e.g., a `final_model/` directory):
 
 ```bash
-python scripts/convert_to_ct2.py --model duong_dan/den/final_model
+python scripts/convert_to_ct2.py --model path/to/final_model
 ```
 
-Lệnh này tạo `models/en-vi-ct2/` và `models/tokenizer-en-vi/`.
+This command will convert the model and create the necessary configuration directories: `models/en-vi-ct2/` and `models/tokenizer-en-vi/`.
 
-## Bước 2: Chạy app
+## Step 2: Run the App
+
+Launch the application with the following command:
 
 ```bash
 python src/main.py
 ```
 
-Bôi đen text bất kỳ → nhấn **Ctrl+Shift+F** → bản dịch hiện ra. Đóng cửa sổ terminal để thoát.
+### Usage
+- **Text Translation:** Highlight any text → press **Ctrl+Shift+F** → the translation will appear.
+- **OCR Translation:** Press the OCR hotkey (configured in `config.yaml`) → Drag your mouse to select a text area on the screen. The app will scan and translate the text. Press **Esc** to cancel.
+- **Exit:** Close the running terminal window to exit the app.
 
-## Mở rộng sau này
+## Extended Features
 
-**Thêm OCR:** viết hàm `capture_from_image()` trong `src/capture.py`, thêm hotkey thứ hai trong `config.yaml` và `main.py`. Không đụng tới `engine.py` hay `popup.py`.
+- **Long Text Translation:** The application automatically splits long paragraphs into individual sentences for smooth translation, preventing truncation at the 128-token limit.
+- **Multi-Engine Support:** The `EngineManager` system allows for easy configuration of additional translation directions (VI→EN) or different models.
 
-**Thêm VI→EN:** convert model VI→EN, bỏ comment phần `vi-en` trong `config.yaml`, thêm phát hiện ngôn ngữ để chọn engine. `EngineManager` đã sẵn sàng giữ nhiều engine.
+## License
 
-## Ghi chú
+This project is distributed under the **MIT License**. You are free to use, modify, and distribute it.
 
-- `max_input_length` trong config phải khớp với lúc train (128).
-- App tách đoạn dài thành từng câu rồi dịch, tránh bị cắt cụt ở 128 token.
+## Acknowledgements
+
+This project is built upon several open-source projects and resources:
+
+### Models
+
+* MarianMT (English ↔ Vietnamese Neural Machine Translation)
+* Base model: Helsinki-NLP/opus-mt-en-vi
+* Fine-tuned on MTET and additional academic-domain parallel corpora
+
+### Open-source Libraries
+
+* Hugging Face Transformers
+* CTranslate2
+* PyTorch
+* RapidOCR
+* OpenCV
+* Pillow
+* pynput
+* pyperclip
+
+### References
+
+* Marian NMT: https://github.com/marian-nmt/marian
+* Hugging Face Transformers: https://github.com/huggingface/transformers
+* CTranslate2: https://github.com/OpenNMT/CTranslate2
+* RapidOCR: https://github.com/RapidAI/RapidOCR
+
+Special thanks to the open-source community for providing the tools and resources that made this project possible.
