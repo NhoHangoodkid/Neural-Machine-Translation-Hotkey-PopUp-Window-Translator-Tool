@@ -7,3 +7,13 @@ __huggingface_repos__.json
 
 # Kết quả nén
 results (1).zip
+*.zip
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.env
+venv/
+.venv/
+env/
