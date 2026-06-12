@@ -53,6 +53,7 @@ def build_engine_manager(cfg) -> EngineManager:
             device=cfg["device"],
             max_input_length=t["max_input_length"],
             num_beams=t["num_beams"],
+            num_hypotheses=t.get("num_hypotheses", 1),
             max_decode_length=t["max_decode_length"])
         mgr.register(name, eng, is_default=(name == default_name))
     return mgr
@@ -83,30 +84,53 @@ def main():
           f"{cfg['hotkeys']['translate_selection'].upper()} de dich.")
     print("Dong cua so terminal nay de thoat app.\n")
 
+    is_translating = False
+
     def process_queue():
+        event_found = False
         try:
             while True:
                 events.get_nowait()
-                handle_translate()
+                event_found = True
         except queue.Empty:
             pass
+            
+        if event_found:
+            handle_translate()
+            
         # Kiem tra lai sau 80ms
         popup.root.after(80, process_queue)
 
     def handle_translate():
-        text = get_selected_text()
-        x, y = mouse.position
-        if not text:
-            popup.show("Khong lay duoc text boi den.", x, y)
+        nonlocal is_translating
+        if is_translating:
             return
-        popup.show_loading(x, y)
-        popup.root.update_idletasks()
+            
+        is_translating = True
         try:
+            text = get_selected_text()
+            x, y = mouse.position
+            if not text:
+                popup.show("Khong lay duoc text boi den.", x, y)
+                return
+            popup.show_loading(x, y)
+            popup.root.update_idletasks()
+            
             sentences = split_sentences(text)
-            result = mgr.translate(sentences)
-            popup.show(result or "(khong co ket qua)", x, y)
+            results = mgr.translate(sentences)
+            
+            if not results:
+                final_text = "(khong co ket qua)"
+            elif len(results) == 1:
+                final_text = results[0]
+            else:
+                final_text = "\n---\n".join(f"[{i+1}] {r}" for i, r in enumerate(results))
+                
+            popup.show(final_text, x, y)
         except Exception as e:
             popup.show(f"Loi dich: {e}", x, y)
+        finally:
+            is_translating = False
 
     popup.root.after(80, process_queue)
     try:
