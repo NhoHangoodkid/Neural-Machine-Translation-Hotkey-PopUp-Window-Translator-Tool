@@ -16,20 +16,32 @@ class Popup:
         self.root = tk.Tk()
         self.root.withdraw()  # an cua so goc
         self._win = None
+        self._timer_id = None
+
+    def _cancel_pending(self):
+        if self._timer_id is not None:
+            self.root.after_cancel(self._timer_id)
+            self._timer_id = None
 
     def show(self, text, x, y):
-        # Dong popup cu neu con
+        self._cancel_pending()
+        
+        # Dong popup cu neu con (destroy ngay lap tuc)
         if self._win is not None:
             try:
                 self._win.destroy()
             except Exception:
                 pass
+            self._win = None
 
         win = tk.Toplevel(self.root)
         self._win = win
         win.overrideredirect(True)          # bo vien cua so
         win.attributes("-topmost", True)    # luon noi len tren
-        win.configure(bg="#1e1e1e")
+        win.attributes("-alpha", 0.0)       # bat dau voi alpha 0
+        
+        # Vien ngoai bang mau accent (Sky blue)
+        win.configure(bg="#38bdf8")
 
         # Vi tri: gan con tro neu co, neu khong thi giua tren cung
         if x is None or y is None:
@@ -37,38 +49,78 @@ class Popup:
             y = 80
         win.geometry(f"+{x + 12}+{y + 12}")
 
-        frame = tk.Frame(win, bg="#1e1e1e", padx=12, pady=10)
-        frame.pack()
+        # Nen chinh (Slate 900)
+        container = tk.Frame(win, bg="#0f172a")
+        container.pack(fill="both", expand=True, padx=1, pady=1)
+
+        # Thanh accent bar mong o tren cung
+        top_bar = tk.Frame(container, bg="#38bdf8", height=2)
+        top_bar.pack(fill="x", side="top")
+
+        frame = tk.Frame(container, bg="#0f172a", padx=16, pady=14)
+        frame.pack(fill="both", expand=True)
 
         label = tk.Label(
-            frame, text=text, bg="#1e1e1e", fg="#eaeaea",
+            frame, text=text, bg="#0f172a", fg="#f8fafc",
             font=("Segoe UI", self.font_size), justify="left",
             wraplength=self.max_width, anchor="w")
-        label.pack()
+        label.pack(fill="both", expand=True)
+
+        # Duong phan cach mong truoc dong hint (Slate 700)
+        sep = tk.Frame(frame, bg="#334155", height=1)
+        sep.pack(fill="x", pady=(12, 8))
 
         hint = tk.Label(
-            frame, text="Esc / click de dong", bg="#1e1e1e", fg="#777",
+            frame, text="Esc · click de dong", bg="#0f172a", fg="#94a3b8",
             font=("Segoe UI", 8))
-        hint.pack(anchor="e", pady=(6, 0))
+        hint.pack(anchor="e")
 
-        # Dong bang Esc hoac click
-        win.bind("<Escape>", lambda e: self._close())
-        win.bind("<Button-1>", lambda e: self._close())
+        # Dong bang Esc hoac click (gan cho cac thanh phan)
+        def close_handler(e):
+            self._close()
+            
+        win.bind("<Escape>", close_handler)
+        win.bind("<Button-1>", close_handler)
+        label.bind("<Button-1>", close_handler)
+        hint.bind("<Button-1>", close_handler)
+        frame.bind("<Button-1>", close_handler)
+        
         win.focus_force()
 
+        self._fade_in(win, 0.0)
+
         if self.timeout_ms and self.timeout_ms > 0:
-            win.after(self.timeout_ms, self._close)
+            self._timer_id = self.root.after(self.timeout_ms, self._close)
+
+    def _fade_in(self, win, alpha):
+        if win != self._win or not win.winfo_exists():
+            return
+        alpha += 0.08
+        if alpha >= 0.95:
+            win.attributes("-alpha", 0.95)
+        else:
+            win.attributes("-alpha", alpha)
+            self.root.after(15, lambda: self._fade_in(win, alpha))
+
+    def _fade_out(self, win, alpha):
+        if not win.winfo_exists():
+            return
+        alpha -= 0.08
+        if alpha <= 0:
+            win.destroy()
+        else:
+            win.attributes("-alpha", alpha)
+            self.root.after(15, lambda: self._fade_out(win, alpha))
 
     def show_loading(self, x, y):
-        self.show("Dang dich...", x, y)
+        self.show("⏳ Dang dich...", x, y)
 
     def _close(self):
+        self._cancel_pending()
         if self._win is not None:
-            try:
-                self._win.destroy()
-            except Exception:
-                pass
+            win_to_close = self._win
             self._win = None
+            self._fade_out(win_to_close, 0.95)
 
     def run_mainloop(self):
         self.root.mainloop()
