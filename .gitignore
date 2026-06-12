@@ -1,9 +1,9 @@
 # Model
-marianmt-mtet-model/
+marianmt-ielts-finetune/
 models/
 
 # Hugging Face repo metadata
 __huggingface_repos__.json
 
 # Kết quả nén
-results.zip
+results(1).zip

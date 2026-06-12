@@ -6,6 +6,5 @@ pyperclip>=1.8.2
 PyYAML>=6.0
 # --- bat khi lam OCR sau nay ---
 # pillow>=10.0.0
-# pytesseract>=0.3.10
 # --- bat khi lam VI->EN sau nay ---
 # langdetect>=1.0.9

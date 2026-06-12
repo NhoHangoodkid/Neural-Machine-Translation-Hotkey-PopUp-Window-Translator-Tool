@@ -12,6 +12,17 @@ goi callback tu luong rieng. Hang doi la cau noi an toan giua hai luong.
 """
 import queue
 import sys
+import ctypes
+
+try:
+    # Cố gắng set DPI awareness để tránh bị zoom màn hình khi Windows scale > 100%
+    ctypes.windll.shcore.SetProcessDpiAwareness(2) # PROCESS_PER_MONITOR_DPI_AWARE
+except Exception:
+    try:
+        ctypes.windll.user32.SetProcessDPIAware()
+    except Exception:
+        pass
+
 from pathlib import Path
 
 import yaml
@@ -24,6 +35,7 @@ from engine import TranslationEngine, EngineManager
 from capture import get_selected_text, split_sentences  
 from popup import Popup                                  
 from hotkey import HotkeyListener                       
+import ocr
 
 ROOT = Path(__file__).parent.parent
 
@@ -70,38 +82,49 @@ def main():
     ui = cfg["ui"]
     popup = Popup(timeout_ms=ui["popup_timeout_ms"], font_size=ui["font_size"], max_width=ui["max_width"])
     mouse = MouseController()
+    
+    ocr_lang = "vi" if "vie" in cfg["ocr"].get("lang", "").lower() else "en"
+    ocr_engine_inst = ocr.OCREngine(lang=ocr_lang, use_gpu=(cfg.get("device") == "cuda"))
 
     # Hang doi noi luong hotkey -> luong chinh (tkinter)
     events = queue.Queue()
 
-    def on_hotkey():
-        events.put("translate")
+    def on_hotkey_sel():
+        events.put("translate_sel")
 
-    listener = HotkeyListener(cfg["hotkeys"]["translate_selection"], on_hotkey)
-    listener.start()
+    def on_hotkey_ocr():
+        events.put("translate_ocr")
 
-    print(f"\n[OK] San sang. Boi den text bat ky roi nhan "
-          f"{cfg['hotkeys']['translate_selection'].upper()} de dich.")
+    listener_sel = HotkeyListener(cfg["hotkeys"]["translate_selection"], on_hotkey_sel)
+    listener_sel.start()
+    
+    listener_ocr = HotkeyListener(cfg["hotkeys"]["translate_ocr"], on_hotkey_ocr)
+    listener_ocr.start()
+
+    print(f"\n[OK] San sang.")
+    print(f" - Boi den text + nhan {cfg['hotkeys']['translate_selection'].upper()} de dich.")
+    print(f" - Nhan {cfg['hotkeys']['translate_ocr'].upper()} de chup man hinh va dich (OCR).")
     print("Dong cua so terminal nay de thoat app.\n")
 
     is_translating = False
 
     def process_queue():
-        event_found = False
+        last_event = None
         try:
             while True:
-                events.get_nowait()
-                event_found = True
+                last_event = events.get_nowait()
         except queue.Empty:
             pass
             
-        if event_found:
-            handle_translate()
+        if last_event == "translate_sel":
+            handle_translate_sel()
+        elif last_event == "translate_ocr":
+            handle_translate_ocr()
             
         # Kiem tra lai sau 80ms
         popup.root.after(80, process_queue)
 
-    def handle_translate():
+    def handle_translate_sel():
         nonlocal is_translating
         if is_translating:
             return
@@ -132,11 +155,51 @@ def main():
         finally:
             is_translating = False
 
+    def handle_translate_ocr():
+        nonlocal is_translating
+        if is_translating:
+            return
+            
+        is_translating = True
+        x, y = None, None  # Khoi tao x, y de phong loi UnboundLocalError
+        try:
+            # Goi ocr
+            text, x_new, y_new = ocr.capture_and_ocr(ocr_engine_inst)
+            if text is None:
+                # Nguoi dung huy hoac loi
+                return
+            x, y = x_new, y_new
+            if not text:
+                popup.show("Khong nhan dien duoc chu nao trong vung chon.", x, y)
+                return
+                
+            popup.show_loading(x, y)
+            popup.root.update_idletasks()
+            
+            sentences = split_sentences(text)
+            results = mgr.translate(sentences)
+            
+            if not results:
+                final_text = "(khong co ket qua)"
+            elif len(results) == 1:
+                final_text = results[0]
+            else:
+                final_text = "\n---\n".join(f"[{i+1}] {r}" for i, r in enumerate(results))
+                
+            # Chi hien thi ban dich
+            popup.show(final_text, x, y)
+            
+        except Exception as e:
+            popup.show(f"Loi OCR/Dich: {e}", x, y)
+        finally:
+            is_translating = False
+
     popup.root.after(80, process_queue)
     try:
         popup.run_mainloop()
     finally:
-        listener.stop()
+        listener_sel.stop()
+        listener_ocr.stop()
 
 
 if __name__ == "__main__":

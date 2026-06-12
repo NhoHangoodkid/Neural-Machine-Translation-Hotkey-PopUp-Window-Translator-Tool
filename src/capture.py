@@ -72,6 +72,9 @@ def split_sentences(text: str):
     if not text:
         return []
 
+    # Fix loi cat tu: neu co dau gach ngang o cuoi dong (vd: dimen-\nsion), noi chung lai voi nhau
+    text = re.sub(r'-[ \t]*\n[ \t]*', '', text)
+
     sentences = []
     # Tach theo dong truoc, roi tach cau trong tung dong.
     for line in text.split("\n"):

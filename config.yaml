@@ -2,7 +2,7 @@
  
 hotkeys:
   translate_selection: "ctrl+shift+y"
-  # translate_ocr: "ctrl+shift+s"   # danh san cho OCR sau nay
+  translate_ocr: "ctrl+shift+h"   # hotkey cho OCR
  
 device: "cpu"          # "cuda" neu may co GPU NVIDIA + CTranslate2 ban GPU
  
@@ -18,10 +18,14 @@ engines:
 translation:
   max_input_length: 128   # khop voi luc train
   num_beams: 4
+  num_hypotheses: 2       # hien thi 2 ban dich khac nhau tu beam search
   max_decode_length: 128
  
 ui:
-  popup_timeout_ms: 9000  # tu dong dong sau bao lau (0 = khong tu dong)
-  font_size: 12
-  max_width: 460
- 
+  popup_timeout_ms: 15000  # tu dong dong sau bao lau (0 = khong tu dong)
+  font_size: 13
+  max_width: 480
+
+ocr:
+  lang: "en"           # paddleocr lang: "en", "vi", "ch", "japan", ...
+  use_gpu: false 
